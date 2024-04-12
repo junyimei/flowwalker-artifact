@@ -15,13 +15,14 @@ add_executable(${TEST_SAMPLER} ${PROJECT_SOURCE_DIR}/src/sampler_test.cu ${PROJE
 
 include_directories(${HEAD_DIR})
 
+# set gpu architecture
+set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_ARCHITECTURES "70;75;80")
+set_property(TARGET ${TEST_SAMPLER} PROPERTY CUDA_ARCHITECTURES "70;75;80")
 
+# Link gflags
 target_link_libraries(${PROJECT_NAME} -lgflags)
 target_link_libraries(${TEST_SAMPLER} -lgflags)
 
-#set gpu architecture
-set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_ARCHITECTURES "70;75;80")
-set_property(TARGET ${TEST_SAMPLER} PROPERTY CUDA_ARCHITECTURES "70;75;80")
 
 # enable compute-sanitizer
 target_compile_options(${PROJECT_NAME} PUBLIC -lineinfo)
@@ -47,5 +48,6 @@ target_compile_options(${TEST_SAMPLER} PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
         >)
 target_link_libraries(${TEST_SAMPLER} -lcudadevrt)
 
+# Link curand
 target_link_libraries(${PROJECT_NAME} -lcurand)
 target_link_libraries(${TEST_SAMPLER} -lcurand)
