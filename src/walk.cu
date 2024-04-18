@@ -1,3 +1,18 @@
+/* ====================================================================
+ * Copyright (2024) Bytedance Ltd. and/or its affiliates
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ====================================================================
+ */
 #include <cub/cub.cuh>
 #include <time.h>
 #include <gflags/gflags.h>
@@ -15,7 +30,6 @@
 #include "gpu_task.cuh"
 #include "gpu_queue.cuh"
 #include "walker.cuh"
-// #include <cuda_profiler_api.h>
 
 DECLARE_double(tp);
 DECLARE_double(p);
@@ -27,7 +41,6 @@ DECLARE_bool(metapath);
 DECLARE_bool(syn);
 DECLARE_bool(dprs);
 
-//[begin,end)
 __global__ void init_taskassignment(TaskAssignments *assign, int num_walkers, int block_num)
 {
     int tid = threadIdx.x;
@@ -53,8 +66,6 @@ __global__ void init_taskassignment_batch(TaskAssignments **assign, int num_walk
 {
     int tid = threadIdx.x;
     int bid = blockIdx.x;
-    // int task_per_block = num_walkers / block_num;
-    // int remainder = num_walkers % block_num;
     for (int i = 0; i < num_walkers; i += batch_size)
     {
         int b_num_walkers = min(batch_size, num_walkers - i);
@@ -170,7 +181,6 @@ __global__ void init_state(myrandStateArr *state)
 {
 
     //  init random number generator state
-
     int gid = (blockDim.x * blockIdx.x) + threadIdx.x;
     myrand_init(1337, gid, 0, state + blockIdx.x);
 }
@@ -441,76 +451,6 @@ double timing_batch_async(walker_t *walker_ptr, vtx_t *start_points, vtx_t *resu
 
     return total_time * 1000;
 }
-
-// template <typename walker_t>
-// double timing_batch_async_static(walker_t *walker_ptr, vtx_t *start_points, vtx_t *result_pool, int batch_size, int num_walkers, int max_depth, int block_num)
-// {
-//     // printf("11111111111\n");
-//     cudaStream_t *streams = new cudaStream_t[2];
-//     for (int i = 0; i < 2; i++)
-//     {
-//         CUDA_RT_CALL(cudaStreamCreate(&streams[i]));
-//     }
-
-//     // only used when batch size = query number
-//     curandState *state_ptr;
-//     CUDA_RT_CALL(cudaMalloc(&state_ptr, block_num * BLOCK_SIZE * sizeof(curandState)));
-//     TaskAssignments *assign_ptr = get_device_ptr<TaskAssignments>(block_num * 2, 0);
-//     init_taskassignment<<<block_num, BLOCK_SIZE>>>(assign_ptr, num_walkers, block_num);
-//     CUDA_RT_CALL(cudaDeviceSynchronize());
-//     vtx_t *start_points_ptr = get_device_ptr<vtx_t>((u64)batch_size * 2, 0);
-//     vtx_t *result_pool_ptr = get_device_ptr<vtx_t>((u64)batch_size * max_depth * 2, -1);
-
-//     // int *start_pointer = get_device_ptr<int>(2, 0);
-//     printf("========start timing\n");
-//     double start_time, total_time;
-//     start_time = wtime();
-
-//     for (int i = 0; i < num_walkers; i += batch_size * 2)
-//     {
-//         int j = i + batch_size;
-//         int batch_num1 = min(batch_size, num_walkers - i);
-//         int batch_num2 = min(batch_size, num_walkers - j);
-
-//         CUDA_RT_CALL(cudaMemcpyAsync(start_points_ptr, start_points + i, (u64)sizeof(vtx_t) * batch_num1, cudaMemcpyHostToDevice, streams[0]));
-//         CUDA_RT_CALL(cudaMemsetAsync(result_pool_ptr, -1, (u64)sizeof(vtx_t) * batch_num1 * max_depth, streams[0]));
-//         // CUDA_RT_CALL(cudaMemsetAsync(start_pointer, 0, sizeof(int), streams[0]));
-
-//         walker_wb_dprs_curand<<<block_num, BLOCK_SIZE, 0, streams[0]>>>(walker_ptr, start_points_ptr, result_pool_ptr, assign_ptr, state_ptr);
-//         // walker_wb_dprs<<<block_num, BLOCK_SIZE, 0, streams[0]>>>(walker_ptr, start_points_ptr, result_pool_ptr, assign_ptr);
-//         // walker_wb_dynamic_dprs<<<block_num, BLOCK_SIZE, 0, streams[0]>>>(walker_ptr, start_points_ptr, start_pointer, result_pool_ptr, batch_num1);
-
-//         CUDA_RT_CALL(cudaMemcpyAsync(result_pool + (u64)i * max_depth, result_pool_ptr, (u64)sizeof(vtx_t) * batch_num1 * max_depth, cudaMemcpyDeviceToHost, streams[0]));
-
-//         if (batch_num2 > 0)
-//         {
-//             vtx_t *b_start_points_ptr = start_points_ptr + batch_size;
-//             vtx_t *b_result_pool_ptr = result_pool_ptr + (u64)batch_size * max_depth;
-
-//             CUDA_RT_CALL(cudaMemcpyAsync(b_start_points_ptr, start_points + j, (u64)sizeof(vtx_t) * batch_num2, cudaMemcpyHostToDevice, streams[1]));
-//             CUDA_RT_CALL(cudaMemsetAsync(b_result_pool_ptr, -1, (u64)sizeof(vtx_t) * batch_num2 * max_depth, streams[1]));
-//             // CUDA_RT_CALL(cudaMemsetAsync(start_pointer + 1, 0, sizeof(int), streams[1]));
-
-//             walker_wb_dprs_curand<<<block_num, BLOCK_SIZE, 0, streams[0]>>>(walker_ptr, b_start_points_ptr, b_result_pool_ptr, assign_ptr + block_num, state_ptr);
-//             // walker_wb_dprs<<<block_num, BLOCK_SIZE, 0, streams[1]>>>(walker_ptr, b_start_points_ptr, b_result_pool_ptr, assign_ptr + block_num);
-//             // walker_wb_dynamic_dprs<<<block_num, BLOCK_SIZE, 0, streams[1]>>>(walker_ptr, b_start_points_ptr, start_pointer + 1, b_result_pool_ptr, batch_num2);
-
-//             CUDA_RT_CALL(cudaMemcpyAsync(result_pool + (u64)j * max_depth, b_result_pool_ptr, (u64)sizeof(vtx_t) * batch_num2 * max_depth, cudaMemcpyDeviceToHost, streams[1]));
-//         }
-//     }
-//     for (int i = 0; i < 2; i++)
-//     {
-//         CUDA_RT_CALL(cudaStreamSynchronize(streams[i]));
-//     }
-//     total_time = wtime() - start_time;
-
-//     for (int i = 0; i < 2; i++)
-//     {
-//         CUDA_RT_CALL(cudaStreamDestroy(streams[i]));
-//     }
-
-//     return total_time * 1000;
-// }
 
 template <typename walker_t>
 double timing_batch_sync(walker_t *walker_ptr, vtx_t *start_points, vtx_t *result_pool, int batch_size, int num_walkers, int max_depth, int block_num)

@@ -1,5 +1,19 @@
-#ifndef _GPU_GRAPH_H_
-#define _GPU_GRAPH_H_
+/* ====================================================================
+ * Copyright (2024) Bytedance Ltd. and/or its affiliates
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ====================================================================
+ */
+#pragma once
 #include <algorithm>
 #include <iostream>
 #include <gflags/gflags.h>
@@ -73,8 +87,6 @@ public:
 
 	__device__ vtx_t getDegree(vtx_t idx)
 	{
-		// if(threadIdx.x==0)
-		//   printf("xadj size:%u, idx=%u\n",vtx_num,idx);
 		return xadj[idx + 1] - xadj[idx];
 	}
 	__device__ void print_max_degree()
@@ -104,33 +116,18 @@ public:
 		while (l <= r)
 		{
 			vtx_t m = l + (r - l) / 2;
-
 			// Check if x is present at mid
 			if (arr[m] == target)
 				return true;
-
 			// If x greater, ignore left half
 			if (arr[m] < target)
 				l = m + 1;
-
 			// If x is smaller, ignore right half
 			else
 				r = m - 1;
 		}
-
 		// If we reach here, then element was not present
 		return false;
-	}
-	__device__ bool CheckConnect(vtx_t src, vtx_t dst)
-	{
-		// check whether vertex src and dst are connected using binary search
-		vtx_t src_degree = getDegree(src);
-		vtx_t dst_degree = getDegree(dst);
-		if (src_degree < dst_degree)
-		{
-			return binarySearch(adjncy + xadj[src], src_degree, dst);
-		}
-		return binarySearch(adjncy + xadj[dst], dst_degree, src);
 	}
 	__device__ bool check_connect(vtx_t src, vtx_t dst)
 	{
@@ -140,5 +137,3 @@ public:
 		return binarySearch(adjncy + xadj[src], src_degree, dst);
 	}
 };
-
-#endif

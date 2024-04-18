@@ -1,15 +1,25 @@
+/* ====================================================================
+ * Copyright (2024) Bytedance Ltd. and/or its affiliates
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ====================================================================
+ */
 #pragma once
 #include <algorithm>
 #include <random>
-// #include <cub/cub.cuh>
 #include <vector>
 
-// #include "app.cuh"
-// #include "myrand.cuh"
-// #include "sampler.cuh"
 #include "gpu_graph.cuh"
 #include "util.cuh"
-// using namespace std;
 
 class Task
 {
@@ -19,8 +29,7 @@ public:
     vtx_t prev_vertex;      // The previous vertex
     edge_t neighbor_offset; // The offset of the neighbor set
     vtx_t degree;           // The degree of the current vertex
-    // int res_offset;         // The offset of the walk in the result pool
-    int length; // The current length of the walk, -1 means the task unit is empty.
+    int length;             // The current length of the walk, -1 means the task unit is empty.
 
 public:
     __device__ Task() {}
@@ -29,10 +38,8 @@ public:
         walker_id = _walker_id;
         prev_vertex = -1;
         current_vertex = start_points[_walker_id];
-        // printf("current_vertex=%u\n",current_vertex);
         neighbor_offset = graph->xadj[current_vertex];
         degree = graph->getDegree(current_vertex);
-        // res_offset = _walker_id * max_depth + 1;
         length = 1;
     }
     __device__ Task(gpu_graph *graph, vtx_t _current_vertex, int _walker_id)
@@ -40,10 +47,8 @@ public:
         walker_id = _walker_id;
         prev_vertex = -1;
         current_vertex = _current_vertex;
-        // printf("current_vertex=%u\n",current_vertex);
         neighbor_offset = graph->xadj[current_vertex];
         degree = graph->getDegree(current_vertex);
-        // res_offset = _walker_id * max_depth + 1;
         length = 1;
     }
     __device__ void init(gpu_graph *graph, vtx_t *start_points, int _walker_id)
@@ -51,10 +56,8 @@ public:
         walker_id = _walker_id;
         prev_vertex = -1;
         current_vertex = start_points[_walker_id];
-        // printf("current_vertex=%u\n",current_vertex);
         neighbor_offset = graph->xadj[current_vertex];
         degree = graph->getDegree(current_vertex);
-        // res_offset = _walker_id * max_depth + 1;
         length = 1;
     }
     __device__ void init(gpu_graph *graph, vtx_t _current_vertex, int _walker_id)
@@ -62,10 +65,8 @@ public:
         walker_id = _walker_id;
         prev_vertex = -1;
         current_vertex = _current_vertex;
-        // printf("current_vertex=%u\n",current_vertex);
         neighbor_offset = graph->xadj[current_vertex];
         degree = graph->getDegree(current_vertex);
-        // res_offset = _walker_id * max_depth + 1;
         length = 1;
     }
 

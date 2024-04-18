@@ -1,10 +1,23 @@
+/* ====================================================================
+ * Copyright (2024) Bytedance Ltd. and/or its affiliates
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ====================================================================
+ */
 #pragma once
 #include <algorithm>
 #include <random>
-// #include <cub/cub.cuh>
 #include <vector>
 
-// #include "app.cuh"
 #include "gpu_task.cuh"
 #include "myrand.cuh"
 #include "sampler.cuh"
@@ -35,9 +48,9 @@ enum walk_mode
 Walk functions
 */
 double walk_test(vtx_t *&result_pool_ptr, gpu_graph *graph, vtx_t *start_points, int max_depth, int num_walkers, walk_mode type, int *schema = NULL, int schema_len = 0);
-// void walk_test(gpu_graph *graph, vtx_t *start_points, int max_depth, int num_walkers, walk_mode type, int *schema = NULL, int schema_len = 0);
+
 double walk_batch(vtx_t *&result_pool, gpu_graph *graph, vtx_t *start_points, int max_depth, int num_walkers, int batch_size, int *schema = NULL, int schema_len = 0);
-// void walk_batch(gpu_graph *graph, vtx_t *start_points, int max_depth, int num_walkers, int batch_size, int *schema = NULL, int schema_len = 0);
+
 /*
 Walkers
 */
@@ -1536,7 +1549,6 @@ __global__ void walker_wb_dynamic_zprs(walker_t *walker, vtx_t *start_points, in
                 }
                 else
                 {
-                    // printf("walker:%d,len=%d,label=%d\n", h_task.walker_id, h_task.length, graph->edge_label[h_task.neighbor_offset + selected]);
                     selected = graph->adjncy[h_task.neighbor_offset + selected];
                     result_pool[(u64)h_task.walker_id * max_depth + h_task.length] = selected;
                     h_task.update(graph, selected);
@@ -2144,23 +2156,16 @@ __global__ void walker_thread(walker_t *walker, vtx_t *start_points, int *start_
     counter->block_begin(bid);
 #endif
     int tid = threadIdx.x;
-    // int lid = threadIdx.x % WARP_SIZE;
     int gid = (blockDim.x * blockIdx.x) + tid;
-    // int wid = threadIdx.x / WARP_SIZE;
 
     gpu_graph *graph = walker->graph;
     int max_depth = walker->max_depth;
 
-    // __shared__ myrandStateArr state;
-    // myrand_init(1337, gid, 0, &state);
     __shared__ curandState state[BLOCK_SIZE];
     curand_init(1337, gid, 0, state + tid);
 
     __shared__ Task tasks[TASK_NUM];
     __shared__ int num_active_tasks;
-
-    // __shared__ int large_tasks[TASK_NUM];
-    // __shared__ int block_task_count;
 
     if (tid == 0)
     {
@@ -2202,14 +2207,12 @@ __global__ void walker_thread(walker_t *walker, vtx_t *start_points, int *start_
                 }
                 else
                 {
-                    // printf("walker:%d,len=%d,label=%d\n", task.walker_id, task.length, graph->edge_label[task.neighbor_offset + selected]);
                     selected = graph->adjncy[task.neighbor_offset + selected];
                     result_pool[(u64)task.walker_id * max_depth + task.length] = selected;
 
                     task.update(graph, selected);
                 }
             }
-            // __syncwarp(FULL_WARP_MASK);
         }
         __syncthreads();
 
@@ -2286,8 +2289,7 @@ __global__ void walker_wb_dynamic_rjs(walker_t *walker, vtx_t *start_points, int
     }
 
     __syncthreads();
-    // if (tid == 0)
-    //     printf("walker num=%d,bid=%d,active tasks:%d\n", walker_num, bid, num_active_tasks);
+
 #ifdef MICRO_BENCH
     counter->sample_begin(bid);
 #endif

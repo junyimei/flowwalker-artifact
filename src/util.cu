@@ -1,3 +1,18 @@
+/* ====================================================================
+ * Copyright (2024) Bytedance Ltd. and/or its affiliates
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ====================================================================
+ */
 #include "util.cuh"
 #include "myrand.cuh"
 double wtime()
@@ -51,94 +66,6 @@ size_t get_avail_mem()
   printf("Amount of total memory: %g GB, avail memory: %g GB, take up: %g GB, %g MB, %g KB\n", total / (1024.0 * 1024.0 * 1024.0), avail / (1024.0 * 1024.0 * 1024.0), (total - avail) / (1024.0 * 1024.0 * 1024.0), (total - avail) / (1024.0 * 1024.0), (total - avail) / (1024.0));
   return avail;
 }
-
-// size_t get_avail_mem_nvml()
-// {
-//   nvmlReturn_t result;
-//   nvmlDevice_t device;
-//   nvmlMemory_t mem_info;
-//   result = nvmlInit();
-//   result = nvmlDeviceGetHandleByIndex(0, &device);
-//   result = nvmlDeviceGetMemoryInfo(device, &mem_info);
-//   printf("Amount of total memory: %g GB, avail memory: %g GB, take up: %g GB, %g MB, %g KB\n", mem_info.total / (1024.0 * 1024.0 * 1024.0), mem_info.free / (1024.0 * 1024.0 * 1024.0), mem_info.used / (1024.0 * 1024.0 * 1024.0), mem_info.used / (1024.0 * 1024.0), mem_info.used / (1024.0));
-
-//   result = nvmlShutdown();
-//   return mem_info.free;
-// }
-
-// https://cse.usf.edu/~kchriste/tools/genzipf.c
-__global__ void zipf_gen(float alpha, int n, float *rand_array, int len, float c)
-{
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
-  int stride = blockDim.x * gridDim.x;
-
-  for (int i = tid; i < len; i += stride)
-  {
-    float sum_prob = 0;
-    for (int j = 1; j <= n; j++)
-    {
-      sum_prob += (c / pow((float)j, alpha));
-      if (sum_prob >= rand_array[i])
-      {
-        rand_array[i] = j;
-        break;
-      }
-    }
-  }
-}
-
-void zipf(float *d_rand_array, int len, float alpha = 1.0, int n = 10)
-{
-  float c = 0; // Normalization constant
-
-  // Calculate normalization constant on the CPU
-  for (int i = 1; i <= n; i++)
-  {
-    c = c + (1.0 / pow((float)i, alpha));
-  }
-  c = 1.0 / c;
-
-  zipf_gen<<<BLOCK_SIZE * 4, BLOCK_SIZE>>>(alpha, n, d_rand_array, len, c);
-  cudaDeviceSynchronize();
-}
-
-// //=========================================================================
-// //= Multiplicative LCG for generating uniform(0.0, 1.0) random numbers    =
-// //=   - x_n = 7^5*x_(n-1)mod(2^31 - 1)                                    =
-// //=   - With x seeded to 1 the 10000th x value should be 1043618065       =
-// //=   - From R. Jain, "The Art of Computer Systems Performance Analysis," =
-// //=     John Wiley & Sons, 1991. (Page 443, Figure 26.2)                  =
-// //=========================================================================
-// double rand_val(int seed)
-// {
-//   const long a = 16807;      // Multiplier
-//   const long m = 2147483647; // Modulus
-//   const long q = 127773;     // m div a
-//   const long r = 2836;       // m mod a
-//   static long x;             // Random int value
-//   long x_div_q;              // x divided by q
-//   long x_mod_q;              // x modulo q
-//   long x_new;                // New x value
-
-//   // Set the seed if argument is non-zero and then return zero
-//   if (seed > 0)
-//   {
-//     x = seed;
-//     return (0.0);
-//   }
-
-//   // RNG using integer arithmetic
-//   x_div_q = x / q;
-//   x_mod_q = x % q;
-//   x_new = (a * x_mod_q) - (r * x_div_q);
-//   if (x_new > 0)
-//     x = x_new;
-//   else
-//     x = x_new + m;
-
-//   // Return a random value between 0.0 and 1.0
-//   return ((double)x / m);
-// }
 
 int get_clk()
 {

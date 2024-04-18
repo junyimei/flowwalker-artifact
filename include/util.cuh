@@ -1,3 +1,18 @@
+/* ====================================================================
+ * Copyright (2024) Bytedance Ltd. and/or its affiliates
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ====================================================================
+ */
 #pragma once
 #include <cooperative_groups.h>
 #include <cuda.h>
@@ -9,9 +24,6 @@
 #include <iostream>
 #include <assert.h>
 
-// #include <nvml.h>
-
-// #define u64 unsigned long long int
 using u64 = unsigned long long int;
 using ll = long long;
 using uint = unsigned int;
@@ -21,21 +33,6 @@ using edge_t = unsigned int;
 using weight_t = float;
 using ulong = unsigned long;
 
-// #define USING_HALF
-#ifdef USING_HALF
-#include <cuda_fp16.h>
-using prob_t = __half;
-using offset_t = uint16_t; // 65535
-#else
-using prob_t = float;
-using offset_t = uint32_t;
-#endif // USING_HALF
-
-#define SPEC_EXE
-// #define RECORD_SPEC_FAIL
-
-#define SASYNC_EXE
-
 #define TID (threadIdx.x + blockIdx.x * blockDim.x)
 #define LTID (threadIdx.x)
 #define BID (blockIdx.x)
@@ -44,11 +41,8 @@ using offset_t = uint32_t;
 #define GWID (TID / 32)
 #define MIN(x, y) ((x < y) ? x : y)
 #define MAX(x, y) ((x > y) ? x : y)
-// #define P printf("%d\n", __LINE__)
-#define paster(n) printf("var: " #n " =  %d\n", n)
 
 #define WARP_SIZE 32
-// #define BLOCK_SIZE 256
 #define BLOCK_SIZE 512
 #define WARP_PER_BLK (BLOCK_SIZE / 32)
 #define FULL_WARP_MASK 0xffffffff
@@ -124,11 +118,6 @@ size_t get_avail_mem();
 
 __global__ void warm_up_gpu();
 
-// int zipf(double alpha, int n); // Returns a Zipf random variable
-// double rand_val(int seed);	   // Jain's RNG
-
-void zipf(float *rand_array, int len, float alpha, int n);
-
 int get_clk();
 
 class metrics
@@ -192,10 +181,7 @@ public:
 		CUDA_RT_CALL(cudaMemset(b_sample_clock, 0, block_num * sizeof(u64)));
 		CUDA_RT_CALL(cudaMemset(b_end_clock, 0, block_num * sizeof(u64)));
 	}
-	// void print(int peak_clk)
-	// {
-	// 	printf("thread_cnt=%llu\nwarp_cnt=%llu\nblock_cnt=%llu\npeak clock rate: %d kHz\nthread time=%f ms\nwarp time=%f ms\nblock time=%f ms\n", thread_cnt, warp_cnt, block_cnt, peak_clk, thread_clock / (float)peak_clk, warp_clock / (float)peak_clk, block_clock / (float)peak_clk);
-	// }
+
 	void print_all(int peak_clk)
 	{
 		u64 thread_cnt = 0;

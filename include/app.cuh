@@ -1,3 +1,18 @@
+/* ====================================================================
+ * Copyright (2024) Bytedance Ltd. and/or its affiliates
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ====================================================================
+ */
 #pragma once
 
 #include <cooperative_groups.h>
@@ -52,14 +67,6 @@ public:
     {
         return graph->adjwgt[task->neighbor_offset + i];
     }
-    // __device__ bool is_stop(int len, myrandStateArr *state)
-    // {
-    //     return len >= max_depth;
-    // }
-    // __device__ bool is_stop(int len, curandState *state)
-    // {
-    //     return len >= max_depth;
-    // }
     template <typename state_t>
     __device__ bool is_stop(int len, state_t *state)
     {
@@ -83,22 +90,6 @@ public:
     {
         return graph->adjwgt[task->neighbor_offset + i];
     }
-    // __device__ bool is_stop(int len, myrandStateArr *state)
-    // {
-    //     float r = myrand_uniform(state);
-    //     if (r <= tp)
-    //         return true;
-    //     else
-    //         return len >= max_depth;
-    // }
-    // __device__ bool is_stop(int len, curandState *state)
-    // {
-    //     float r = curand_uniform(state);
-    //     if (r <= tp)
-    //         return true;
-    //     else
-    //         return len >= max_depth;
-    // }
     template <typename state_t>
     __device__ bool is_stop(int len, state_t *state)
     {
@@ -142,14 +133,6 @@ public:
             return w;
         }
     }
-    // __device__ bool is_stop(int len, myrandStateArr *state)
-    // {
-    //     return len >= max_depth;
-    // }
-    // __device__ bool is_stop(int len, curandState *state)
-    // {
-    //     return len >= max_depth;
-    // }
     template <typename state_t>
     __device__ bool is_stop(int len, state_t *state)
     {
@@ -174,18 +157,8 @@ public:
     __device__ weight_t get_weight(Task *task, int i)
     {
         edge_t offset = task->neighbor_offset + i;
-        // printf("walker id=%d,len=%d,label=%d,schema=%d,i=%d\n", task->walker_id, task->length, graph->edge_label[task->neighbor_offset + i], schema[(task->length - 1) % schema_len], i);
         return graph->edge_label[offset] == schema[(task->length - 1) % schema_len] ? 1.0 : 0;
-        // return graph->edge_label[offset] == schema[(task->length - 1) % schema_len] ? graph->adjwgt[offset] : 0;
     }
-    // __device__ bool is_stop(int len, myrandStateArr *state)
-    // {
-    //     return len >= max_depth;
-    // }
-    // __device__ bool is_stop(int len, curandState *state)
-    // {
-    //     return len >= max_depth;
-    // }
     template <typename state_t>
     __device__ bool is_stop(int len, state_t *state)
     {

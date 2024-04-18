@@ -1,3 +1,18 @@
+/* ====================================================================
+ * Copyright (2024) Bytedance Ltd. and/or its affiliates
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ====================================================================
+ */
 #pragma once
 #include <algorithm>
 #include <random>
@@ -65,7 +80,6 @@ __device__ inline vtx_t sampler_warp(walker_t *walker, Task *task, state_t *stat
 
         if (w > 0)
         {
-            // printf("walker id=%d, w: %f, i=%d\n", task->walker_id, w, i);
             if (selected_id == -1)
                 selected_id = 0;
             if (myrand_uniform(state) < w / weight_sum)
@@ -77,8 +91,6 @@ __device__ inline vtx_t sampler_warp(walker_t *walker, Task *task, state_t *stat
     }
 
     selected_id = warpReduceMax(selected_id);
-    // if (lid == 0)
-    //     printf("walker id=%d, selected_id=%lld, len=%d, size=%d,return=%d,%d\n", task->walker_id, selected_id, task->length, size, (int)(selected_id % (ll)size), (-1) % 1);
 
     return (selected_id == -1) ? -1 : selected_id % size;
 }
@@ -156,8 +168,8 @@ __device__ inline vtx_t sampler_warp_oneloop(walker_t *walker, Task *task, state
         if (i < size && myrand_uniform(state) < w / weight_sum)
             selected_id = i;
         prev_ite_sum = __shfl_sync(FULL_WARP_MASK, weight_sum, 31, WARP_SIZE);
+        selected_id = warpReduceMax(selected_id);
     }
-    selected_id = warpReduceMax(selected_id);
 
     return selected_id;
 }
@@ -221,17 +233,13 @@ __device__ inline vtx_t sampler_rjs_warp(walker_t *walker, Task *task, state_t *
     {
         weight_t w = walker->get_weight(task, i);
         local_max_weight = max(local_max_weight, w);
-        // if (w > 0 && selected_id == -1)
-        //     selected_id = 0;
     }
     __syncwarp();
 
     weight_t max_weight = warpReduceMax(local_max_weight);
     __syncwarp();
-    // vtx_t selected = 0;
     if (lid == 0 && max_weight > 0)
     {
-        // max_weight = max_weight;
         vtx_t x;
         weight_t y, prob;
         do
@@ -258,8 +266,6 @@ __device__ inline vtx_t sampler_rjs_block(walker_t *walker, Task *task, state_t 
     {
         weight_t w = walker->get_weight(task, i);
         local_max_weight = max(local_max_weight, w);
-        // if (w > 0 && selected == -1)
-        //     selected = 0;
     }
     __syncthreads();
     typedef cub::BlockReduce<weight_t, BLOCK_SIZE> BlockReduce;
@@ -346,7 +352,6 @@ __device__ inline vtx_t test_warp_sampler(const weight_t *weights, int size, T *
     selected_id = warpReduceMax(selected_id);
 
     return selected_id % size;
-    // return (selected_id == -1) ? -1 : selected_id % size;
 }
 
 template <typename T>
@@ -390,7 +395,6 @@ __device__ inline vtx_t test_block_sampler(const weight_t *weights, int size, T 
     __syncthreads();
 
     return selected % size;
-    // return (selected == -1) ? -1 : selected % size;
 }
 
 template <typename T>
@@ -511,8 +515,8 @@ __device__ inline vtx_t test_warp_sampler_oneloop(const weight_t *weights, int s
         if (i < size && myrand_uniform(state) < w / weight_sum)
             selected_id = i;
         prev_ite_sum = __shfl_sync(FULL_WARP_MASK, weight_sum, 31, WARP_SIZE);
+        selected_id = warpReduceMax(selected_id);
     }
-    selected_id = warpReduceMax(selected_id);
 
     return selected_id;
 }
@@ -521,7 +525,7 @@ __device__ inline vtx_t test_warp_sampler_oneloop(const weight_t *weights, int s
  * Time cost: (N/p) * (x + log p + log p)
  */
 template <typename T>
-__device__ inline vtx_t test_block_sampler_oneloop(const weight_t *weights, int size, T *state)
+__device__ inline vtx_t test_block_sampler_oneloop_modify(const weight_t *weights, int size, T *state)
 {
     int tid = threadIdx.x;
 
@@ -550,9 +554,6 @@ __device__ inline vtx_t test_block_sampler_oneloop(const weight_t *weights, int 
                 local_selected_id = i;
         }
 
-        // __syncthreads();
-
-        // __syncthreads();
         if (tid == BLOCK_SIZE - 1)
         {
             prefix_sum = weight_sum;
@@ -568,7 +569,7 @@ __device__ inline vtx_t test_block_sampler_oneloop(const weight_t *weights, int 
 }
 
 template <typename T>
-__device__ inline vtx_t test_block_sampler_oneloop_old(const weight_t *weights, int size, T *state)
+__device__ inline vtx_t test_block_sampler_oneloop(const weight_t *weights, int size, T *state)
 {
     int tid = threadIdx.x;
 
@@ -601,9 +602,8 @@ __device__ inline vtx_t test_block_sampler_oneloop_old(const weight_t *weights, 
         typedef cub::BlockReduce<vtx_t, BLOCK_SIZE> BlockReduce;
         __shared__ typename BlockReduce::TempStorage temp_storage_reduce;
 
-        // __syncthreads();
         selected_id = max(selected_id, BlockReduce(temp_storage_reduce).Reduce(local_selected_id, cub::Max()));
-        // __syncthreads();
+
         if (tid == BLOCK_SIZE - 1)
         {
             prefix_sum = weight_sum;
@@ -941,7 +941,6 @@ __device__ inline vtx_t its_warp_sampler(weight_t *weights, int size, T *state, 
     }
 
     __shared__ weight_t all_sum[WARP_PER_BLK];
-    // __shared__ weight_t r[WARP_PER_BLK];
     if (lid == WARP_SIZE - 1)
     {
         all_sum[wid] = local_sum + prob[size - 1];
@@ -1130,7 +1129,6 @@ __device__ inline vtx_t rjs_warp_sampler(const weight_t *weights, int size, T *s
     vtx_t selected = 0;
     if (lid == 0)
     {
-        // max_weight = max_weight;
         vtx_t x;
         weight_t y, prob;
         do
@@ -1166,7 +1164,6 @@ __device__ inline vtx_t rjs_warp_sampler(const weight_t *weights, int size, T *s
     vtx_t selected = 0;
     if (lid == 0)
     {
-        // max_weight = max_weight;
         vtx_t x;
         weight_t y, prob;
         do
@@ -1186,10 +1183,7 @@ template <typename T>
 __device__ inline vtx_t rjs_block_sampler(weight_t *weights, int size, T *state, u64 *clk)
 {
     u64 start_clk = clock64();
-
     int tid = threadIdx.x;
-    // __shared__ weight_t max_weight;
-    // max_weight = 0;
 
     weight_t local_max_weight = 0;
     for (int i = tid; i < size; i += BLOCK_SIZE)
@@ -1204,23 +1198,17 @@ __device__ inline vtx_t rjs_block_sampler(weight_t *weights, int size, T *state,
     __syncthreads();
     vtx_t selected = 0;
 
-    // int num_rand = 0;
     if (tid == 0)
     {
-        // max_weight = max_w;
         vtx_t x;
         weight_t y, prob;
         do
         {
-            // num_rand++;
-            // atomicAdd(cnt, 1);
             x = myrand(state) % size;
             y = myrand_uniform(state) * max_w;
             prob = weights[x];
         } while (y > prob);
         selected = x;
-        // if (task_id == 0)
-        //     printf("%d:%f,%d\n", blockIdx.x, max_weight, num_rand);
     }
 
     __syncthreads();
@@ -1235,8 +1223,6 @@ template <typename T>
 __device__ inline vtx_t rjs_block_sampler(weight_t *weights, int size, T *state)
 {
     int tid = threadIdx.x;
-    // __shared__ weight_t max_weight;
-    // max_weight = 0;
 
     weight_t local_max_weight = 0;
     for (int i = tid; i < size; i += BLOCK_SIZE)
@@ -1251,23 +1237,17 @@ __device__ inline vtx_t rjs_block_sampler(weight_t *weights, int size, T *state)
     __syncthreads();
     vtx_t selected = 0;
 
-    // int num_rand = 0;
     if (tid == 0)
     {
-        // max_weight = max_w;
         vtx_t x;
         weight_t y, prob;
         do
         {
-            // num_rand++;
-            // atomicAdd(cnt, 1);
             x = myrand(state) % size;
             y = myrand_uniform(state) * max_w;
             prob = weights[x];
         } while (y > prob);
         selected = x;
-        // if (task_id == 0)
-        //     printf("%d:%f,%d\n", blockIdx.x, max_weight, num_rand);
     }
 
     __syncthreads();

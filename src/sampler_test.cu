@@ -1,4 +1,18 @@
-// #include "sampler.cuh"
+/* ====================================================================
+ * Copyright (2024) Bytedance Ltd. and/or its affiliates
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ====================================================================
+ */
 #include "app.cuh"
 #include <stdio.h>
 #include <cuda_runtime.h>
@@ -11,19 +25,12 @@
 #include <map>
 #include <iterator>
 
-// #define BLOCK_SIZE 256
-// #define WARP_SIZE 32
-// #define NUM_BLOCKS 256
 #define TEST_BLOCK_SIZE 512
 // #define AVG
 
 DEFINE_int32(groupsize, 32, "The number of threads in a sampler");
 DEFINE_int32(gran, 32, "The number of elements processed by each sampler.");
 DEFINE_int32(type, 0, "Sample type");
-
-// DEFINE_int32(repeat, 1, "Repeat time");
-
-// typedef vtx_t (*FunType)(const weight_t *, int, myrandStateArr *);
 
 __global__ void init_state(curandState *state)
 {
@@ -995,12 +1002,6 @@ int main(int argc, char *argv[])
     int res_size = 512 * 1024 * 1024;
     // int res_size = FLAGS_gran;
 
-    // weight_t *weight_array = new weight_t[size];
-    // for (int i = 0; i < size; ++i)
-    // {
-    //     weight_array[i] = zipf(1, 5);
-    // }
-
     int device;
     cudaDeviceProp prop;
     cudaGetDevice(&device);
@@ -1008,7 +1009,6 @@ int main(int argc, char *argv[])
     int n_sm = prop.multiProcessorCount;
     int b_per_sm = 1024 / BLOCK_SIZE;
     int block_num = n_sm * b_per_sm * 2;
-    // int block_num = 1;
 
     // Allocate device memory
     weight_t *d_weight_array;
@@ -1017,8 +1017,6 @@ int main(int argc, char *argv[])
     cudaMalloc(&d_weight_array, sizeof(weight_t) * size);
     cudaMalloc(&d_res, sizeof(vtx_t) * res_size);
 
-    // cudaMemcpy(d_weight_array, weight_array, sizeof(weight_t) * size, cudaMemcpyHostToDevice);
-
     curandGenerator_t gen;
     curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT);
     curandSetPseudoRandomGeneratorSeed(gen, 1234ULL);
@@ -1026,13 +1024,10 @@ int main(int argc, char *argv[])
     curandGenerateUniform(gen, d_weight_array, size);
     // curandGenerateLogNormal(gen, d_weight_array, size, 0, 2);
 
-    // zipf(d_weight_array, size, 1, 5000);
-
     // Test warp_sampler as an example
     int group_size = FLAGS_groupsize; // The number of threads in a sampler.
     int sample_type = FLAGS_type;
     int granularity = FLAGS_gran; // The number of elements processed by each sampler.
-    // int repeat_time = FLAGS_repeat; // Repeat several times to get a time.
 
     test_sampler_helper(d_weight_array, size, d_res,
                         block_num, group_size, sample_type, granularity);
@@ -1041,9 +1036,6 @@ int main(int argc, char *argv[])
     // Free device memory
     cudaFree(d_weight_array);
     cudaFree(d_res);
-
-    // Destroy generator
-    // curandDestroyGenerator(gen);
 
     return 0;
 }
