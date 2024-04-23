@@ -1,0 +1,18 @@
+---
+BasedOnStyle:  Google
+DerivePointerAlignment: false
+BreakBeforeTernaryOperators: true
+BreakBeforeBinaryOperators: false
+ColumnLimit: 80
+IncludeCategories:
+  - Regex:           '^<.*\.h>'
+    Priority:        1
+  - Regex:           '^<ext/.*\.h>'
+    Priority:        2
+  - Regex:           '^<[a-z_]*>$'
+    Priority:        3
+  - Regex:           '^<.*'
+    Priority:        4
+  - Regex:           '.*'
+    Priority:        5
+...
