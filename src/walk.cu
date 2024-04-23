@@ -524,7 +524,8 @@ double timing_batch_sync(walker_t* walker_ptr, vtx_t* start_points,
 
 // double walk_test(gpu_graph *graph, vtx_t *start_points, int max_depth, int
 // num_walkers, walk_mode type, int *schema, int schema_len)
-double walk_test(vtx_t*& result_pool_ptr, gpu_graph* graph, vtx_t* start_points,  //NOLINT
+double walk_test(vtx_t*& result_pool_ptr, gpu_graph* graph,
+                 vtx_t* start_points,  // NOLINT
                  int max_depth, int num_walkers, walk_mode type, int* schema,
                  int schema_len) {
   LOG("%s\n", __FUNCTION__);
@@ -572,7 +573,8 @@ double walk_test(vtx_t*& result_pool_ptr, gpu_graph* graph, vtx_t* start_points,
   return total_time;
 }
 
-double walk_batch(vtx_t*& result_pool, gpu_graph* graph, vtx_t* start_points,  // NOLINT
+double walk_batch(vtx_t*& result_pool, gpu_graph* graph,
+                  vtx_t* start_points,  // NOLINT
                   int max_depth, int num_walkers, int batch_size, int* schema,
                   int schema_len) {
   LOG("%s\n", __FUNCTION__);

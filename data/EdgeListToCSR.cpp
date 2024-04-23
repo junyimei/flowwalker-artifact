@@ -1,3 +1,8 @@
+// MIT License
+// Copyright (c) 2021 Rapids @ HKUST
+// Created by yche on 10/29/19.
+// Downloaded from https://github.com/RapidsAtHKUST/SubgraphMatching/blob/master/matching/EdgeListToCSR.cpp
+
 #include <cstdio>
 #include <cassert>
 #include <algorithm>

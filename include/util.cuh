@@ -18,6 +18,7 @@
 #include <assert.h>
 #include <cooperative_groups.h>
 #include <cuda.h>
+#include <inttypes.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,7 +31,7 @@
 #include <tuple>
 #include <utility>
 
-using u64 = unsigned long long; // NOLINT
+using u64 = unsigned long long;  // NOLINT
 // CUDA API uses 'unsigned long long'
 using ll = int64_t;
 using uint = unsigned int;
@@ -206,9 +207,8 @@ class metrics {
           (b_thread_cnt[i] + b_warp_cnt[i] + b_block_cnt[i]),
           (b_thread_degree[i] + b_warp_degree[i] + b_block_degree[i]),
           b_thread_cnt[i], b_thread_degree[i],
-          b_thread_clock[i] / static_cast<float>(peak_clk),
-          b_warp_cnt[i], b_warp_degree[i],
-          b_warp_clock[i] / static_cast<float>(peak_clk),
+          b_thread_clock[i] / static_cast<float>(peak_clk), b_warp_cnt[i],
+          b_warp_degree[i], b_warp_clock[i] / static_cast<float>(peak_clk),
           b_block_cnt[i], b_block_degree[i],
           b_block_clock[i] / static_cast<float>(peak_clk));
 
@@ -243,7 +243,8 @@ class metrics {
         thread_clock / static_cast<float>(peak_clk),
         warp_clock / static_cast<float>(peak_clk),
         block_clock / static_cast<float>(peak_clk));
-    printf("thread degree:%lld\nwarp degree:%lld\nblock degree:%lld\n",
+    printf("thread degree:%" PRId64 "\nwarp degree:%" PRId64
+           "\nblock degree:%" PRId64 "\n",
            thread_degree, warp_degree, block_degree);
   }
 

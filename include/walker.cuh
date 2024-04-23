@@ -46,11 +46,13 @@ enum walk_mode {
 /*
 Walk functions
 */
-double walk_test(vtx_t*& result_pool_ptr, gpu_graph* graph, vtx_t* start_points,  // NOLINT
+double walk_test(vtx_t*& result_pool_ptr, gpu_graph* graph,
+                 vtx_t* start_points,  // NOLINT
                  int max_depth, int num_walkers, walk_mode type,
                  int* schema = NULL, int schema_len = 0);
 
-double walk_batch(vtx_t*& result_pool, gpu_graph* graph, vtx_t* start_points,  // NOLINT
+double walk_batch(vtx_t*& result_pool, gpu_graph* graph,
+                  vtx_t* start_points,  // NOLINT
                   int max_depth, int num_walkers, int batch_size,
                   int* schema = NULL, int schema_len = 0);
 
