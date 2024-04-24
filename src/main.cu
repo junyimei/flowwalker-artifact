@@ -289,7 +289,7 @@ vtx_t* get_startpoints(graph* ginst, int sample_size) {
       else
         start_points[i] = rand_r(&local_seed) % num_node;
       // start_points[i] = i;
-      // printf("start p %d:%u\n",i,start_points[i]);
+      // printf("start p %d:%u\n", i, start_points[i]);
     }
   }
   return start_points;
