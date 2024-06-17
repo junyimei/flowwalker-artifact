@@ -14,12 +14,25 @@
   - [Ablation Study (Figure 7)](#ablation-study-figure-7)
 
 
-This is the source code of submission paper **FlowWalker: A Memory-efficient and High-performance GPU-based Dynamic Graph Random Walk Framework**. 
+This is the source code of paper **FlowWalker: A Memory-efficient and High-performance GPU-based Dynamic Graph Random Walk Framework** in VLDB 2024. 
 
 `FlowWalker` is a GPU-based dynamic graph random walk framework. It implements an efficient parallel reservoir sampling method to fully exploit the GPU parallelism and reduce space complexity. Moreover, it employs a sampler-centric paradigm alongside a dynamic scheduling strategy to handle the huge amounts of walking queries. `FlowWalker` stands as a high-throughput as well as a memory-efficient framework that requires no auxiliary data structures in GPU global memory. 
 
-For further details, please refer to our [paper](#) and [technical report](https://arxiv.org/abs/2404.08364). Feel free to email Junyi Mei by meijunyi AT sjtu.edu.cn if you have any questions. We are looking forward to receive your feedbacks.
+For further details, please refer to our [paper](https://www.vldb.org/pvldb/vol17/p1788-mei.pdf) and [technical report](https://arxiv.org/abs/2404.08364). 
+Feel free to email Junyi Mei by meijunyi AT sjtu.edu.cn if you have any questions. We are looking forward to receive your feedbacks.
 
+```
+@article{mei2024flowwalker,
+  title={FlowWalker: A Memory-Efficient and High-Performance GPU-Based Dynamic Graph Random Walk Framework},
+  author={Mei, Junyi and Sun, Shixuan and Li, Chao and Xu, Cheng and Chen, Cheng and Liu, Yibo and Wang, Jing and Zhao, Cheng and Hou, Xiaofeng and Guo, Minyi and others},
+  journal={Proceedings of the VLDB Endowment},
+  volume={17},
+  number={8},
+  pages={1788--1801},
+  year={2024},
+  publisher={VLDB Endowment}
+}
+```
 
 ## Code Structure
 
@@ -148,3 +161,4 @@ The command to conduct ablation study of FlowWalker:
 --walkmode=1    : FW + ZPRS (incorporating RNG)
 --walkmode=6    : FW + DS (incorporating RNG+ZPRS)
 ```
+
