@@ -10,8 +10,8 @@
 - [Reproducing Results in Paper](#reproducing-results-in-paper)
   - [Environment](#environment)
   - [Overall Comparision (Table 2)](#overall-comparision-table-2)
-  - [Sampler Test (Figure 6)](#sampler-test-figure-6)
-  - [Ablation Study (Figure 7)](#ablation-study-figure-7)
+  - [Sampler Test (Figure 6a, 6b)](#sampler-test-figure-6a-6b)
+  - [Ablation Study (Figure 6c)](#ablation-study-figure-6c)
 
 
 This is the source code of paper **FlowWalker: A Memory-efficient and High-performance GPU-based Dynamic Graph Random Walk Framework** in VLDB 2024. 
@@ -122,8 +122,8 @@ Table 2 in paper conducts the overall performance of FlowWalker and other baseli
 ```
 `$APP` includes `deepwalk`, `ppr`, `node2vec`, and `metapath`.
 
-### Sampler Test (Figure 6)
-Figure 6 tests the performance of various samplers under different sampling sizes. Figure 6(a) compares the running time of ZPRS, ITS, and ALS samplers:
+### Sampler Test (Figure 6a, 6b)
+Figure 6(a) and 6(b) tests the performance of various samplers under different sampling sizes. Figure 6(a) compares the running time of ZPRS, ITS, and ALS samplers:
 ```
 ./bin/TestSampler.out --groupsize=$SAMPLING_SIZE --gran=32 --type=1  #ZPRS(warp)
 ./bin/TestSampler.out --groupsize=$SAMPLING_SIZE --gran=512 --type=2 #ZPRS(block)
@@ -133,15 +133,15 @@ Figure 6 tests the performance of various samplers under different sampling size
 ./bin/TestSampler.out --groupsize=$SAMPLING_SIZE --gran=512 --type=8 #ALS(block)
 ```
 
-Figure 6(b) presents the speedup of RNG optimization.
+<!-- Figure 6(b) presents the speedup of RNG optimization.
 ```
 ./bin/TestSampler.out --groupsize=$SAMPLING_SIZE --gran=32 --type=1  # optimized (warp)
 ./bin/TestSampler.out --groupsize=$SAMPLING_SIZE --gran=32 --type=21 # curand (warp)
 ./bin/TestSampler.out --groupsize=$SAMPLING_SIZE --gran=512 --type=2 # optimized (block)
 ./bin/TestSampler.out --groupsize=$SAMPLING_SIZE --gran=512 --type=21 # curand (block)
-```
+``` -->
 
-Figure 6(c) compares the performance of ZPRS and DPRS.
+Figure 6(b) compares the performance of ZPRS and DPRS.
 ```
 ./bin/TestSampler.out --groupsize=$SAMPLING_SIZE --gran=32 --type=1  #ZPRS(warp)
 ./bin/TestSampler.out --groupsize=$SAMPLING_SIZE --gran=512 --type=2 #ZPRS(block)
@@ -149,7 +149,7 @@ Figure 6(c) compares the performance of ZPRS and DPRS.
 ./bin/TestSampler.out --groupsize=$SAMPLING_SIZE --gran=512 --type=4 #DPRS(block)
 ```
 
-### Ablation Study (Figure 7)
+### Ablation Study (Figure 6c)
 The command to conduct ablation study of FlowWalker:
 ```
 ./bin/flowwalker --input $PATH_TO_DATA --deepwalk --seq --n=1000000 --d=80 --walkmode=$WALKMODE
