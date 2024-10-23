@@ -18,7 +18,7 @@ This is the source code of paper **FlowWalker: A Memory-efficient and High-perfo
 
 `FlowWalker` is a GPU-based dynamic graph random walk framework. It implements an efficient parallel reservoir sampling method to fully exploit the GPU parallelism and reduce space complexity. Moreover, it employs a sampler-centric paradigm alongside a dynamic scheduling strategy to handle the huge amounts of walking queries. `FlowWalker` stands as a high-throughput as well as a memory-efficient framework that requires no auxiliary data structures in GPU global memory. 
 
-For further details, please refer to our [paper](https://www.vldb.org/pvldb/vol17/p1788-mei.pdf) and [technical report](https://arxiv.org/abs/2404.08364). 
+For further details, please refer to our [paper](https://www.vldb.org/pvldb/vol17/p1788-mei.pdf), [technical report](https://arxiv.org/abs/2404.08364), and [slide](FlowWalker-VLDB24.pdf). 
 Feel free to email Junyi Mei by meijunyi AT sjtu.edu.cn if you have any questions. We are looking forward to receive your feedbacks.
 
 ```
@@ -76,7 +76,7 @@ make -j
 ```
 
 ## Dataset and Pre-processing
-The input of FlowWalker is transformed into CSR format. We provide an example graph [wiki-Vote](http://snap.stanford.edu/data/wiki-Vote.html). You can use this graph or download any other dataset you would like to use. Please refer to README.md in the data folder for more details.
+The input of FlowWalker is transformed into CSR format. We provide an example graph [wiki-Vote](http://snap.stanford.edu/data/wiki-Vote.html). You can use this graph or download any other dataset you would like to use. Please refer to [README.md](./data/README.md) in the data folder for more details.
 
 ## Execution 
 Execute DeepWalk with command:
